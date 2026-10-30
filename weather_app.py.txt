@@ -1,0 +1,74 @@
+
+import requests
+import os
+
+# OpenWeather API settings
+API_KEY = os.getenv("OPENWEATHER_API_KEY")
+BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+
+
+def get_weather(city):
+
+    if not API_KEY:
+        print("API key not found!")
+        return
+
+    params = {
+        "q": city,
+        "appid": API_KEY,
+        "units": "metric"
+    }
+
+    try:
+        print("\nFetching weather information...")
+
+        response = requests.get(
+            BASE_URL,
+            params=params,
+            timeout=10
+        )
+
+        if response.status_code == 200:
+
+            data = response.json()
+
+            print("\n========== WEATHER DETAILS ==========")
+            print("City:", data["name"])
+            print("Temperature:", data["main"]["temp"], "C")
+            print("Feels Like:", data["main"]["feels_like"], "C")
+            print("Weather:", data["weather"][0]["description"])
+            print("Humidity:", data["main"]["humidity"], "%")
+            print("Wind Speed:", data["wind"]["speed"], "m/s")
+            print("=====================================")
+
+        else:
+            print("\nAPI Error!")
+            print("Status Code:", response.status_code)
+
+            try:
+                error_data = response.json()
+                print("Reason:", error_data.get("message", "Unknown error"))
+            except ValueError:
+                print("Reason: Unable to read error details")
+
+    except requests.exceptions.Timeout:
+        print("Request timed out. Try again.")
+
+    except requests.exceptions.ConnectionError:
+        print("Check your internet connection.")
+
+    except requests.exceptions.RequestException as error:
+        print("Request Error:", error)
+
+
+# Main Program
+print("================================")
+print("          WEATHER APP")
+print("================================")
+
+city = input("Enter city name: ").strip()
+
+if city:
+    get_weather(city)
+else:
+    print("Please enter a valid city name.")
